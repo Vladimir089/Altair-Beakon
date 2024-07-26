@@ -9,16 +9,23 @@
 
 
 import UIKit
+import CoreImage
 
 var valueArr: [(UIImage, String, String, String)] = [(UIImage.usd, "USD", "US dollar", "$"), (UIImage.eur, "EUR", "Euro", "€") , (UIImage.jpy, "JPY" , "Japanese yen" , "¥") , (UIImage.chf, "CHF" , "Swiss franc" , "₣") , (UIImage.try, "TRY" , "Turkish lira" , "₺") , (UIImage.kzt , "KZT" , "Kazakhstani tenge", "₸") , (UIImage.gbp, "GBP" , "Pound sterling" , "£"), (UIImage.thb, "THB" , "Thai baht" , "฿")]
 
+
 var balanceArr = [0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
+var historyArr: [(UIImage, String, String, String)] = []
 
 protocol BalanceViewControllerDelegate: AnyObject {
     func reloadData(index: Int)
 }
 
 class BalanceViewController: UIViewController {
+    
+    let catArr: [(UIImage, String)] = [(UIImage.oneCat, "Housing") , (UIImage.twoCat, "Food") , (UIImage.threeCat, "Clothes") , (UIImage.fourCat, "Medicine") , (UIImage.fiveCat , "Transport") , (UIImage.sixCat , "Study") , (UIImage.sevenCat , "Loans") , (UIImage.eadgeCat, "Other")]
+    
+    var butArrow: [UIButton] = []
     
     var selectedValueArr = 0
     var valueImageView: UIImageView?
@@ -31,6 +38,22 @@ class BalanceViewController: UIViewController {
     var editBalanceImageView: UIImageView?
     var labelValEditBalance: UILabel?
     var saveEditBalanceButton: UIButton?
+    
+    
+    //Диаграмма
+    var procentLabel: UILabel?
+    var spentLabel: UILabel?
+    
+    //Коллекции
+    var categoryCollection: UICollectionView?
+    var selectedCategor: Int?
+    
+    
+    var historyCollection: UICollectionView?
+    var noHistoryView: UIView?
+    var newHistoryView: UIView?
+    var nameHistoryTextField: UITextField?
+    var selectedCategoryCreate: Int?
     
     
     override func viewWillAppear(_ animated: Bool) {
@@ -161,6 +184,8 @@ class BalanceViewController: UIViewController {
         }
         editButton.addTarget(self, action: #selector(openEditBalance), for: .touchUpInside)
         
+        
+        
         editBalanceView = {
             let view = UIView()
             view.alpha = 0
@@ -261,6 +286,225 @@ class BalanceViewController: UIViewController {
             
             return view
         }()
+       
+        
+        let gestureHideKey = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
+        editBalanceView?.addGestureRecognizer(gestureHideKey)
+        
+        let imageViewDiagram = UIImageView(image: .diagram)
+        imageViewDiagram.contentMode = .scaleAspectFit
+        view.addSubview(imageViewDiagram)
+        imageViewDiagram.snp.makeConstraints { make in
+            make.height.width.equalTo(50)
+            make.left.equalToSuperview().inset(15)
+            make.top.equalTo(balanceLabelCount!.snp.bottom).inset(-15)
+        }
+        
+        procentLabel = UILabel()
+        procentLabel?.text = "0%"
+        procentLabel?.font = .systemFont(ofSize: 11, weight: .regular)
+        procentLabel?.textColor = .black
+        imageViewDiagram.addSubview(procentLabel!)
+        procentLabel!.snp.makeConstraints { make in
+            make.centerX.centerY.equalToSuperview()
+        }
+        
+        let moneySpentLabal = UILabel()
+        moneySpentLabal.text = "Money spent"
+        moneySpentLabal.font = .systemFont(ofSize: 17, weight: .semibold)
+        moneySpentLabal.textColor = .black
+        view.addSubview(moneySpentLabal)
+        moneySpentLabal.snp.makeConstraints { make in
+            make.top.equalTo(imageViewDiagram)
+            make.left.equalTo(imageViewDiagram.snp.right).inset(-15)
+        }
+        
+        spentLabel = UILabel()
+        spentLabel?.text = "0%"
+        spentLabel?.font = .systemFont(ofSize: 16, weight: .regular)
+        spentLabel?.textColor = .black
+        view.addSubview(spentLabel!)
+        spentLabel?.snp.makeConstraints({ make in
+            make.left.equalTo(imageViewDiagram.snp.right).inset(-15)
+            make.bottom.equalTo(imageViewDiagram.snp.bottom)
+        })
+        
+        let separatorView = UIView()
+        separatorView.backgroundColor = UIColor(red: 195/255, green: 167/255, blue: 255/255, alpha: 1)
+        view.addSubview(separatorView)
+        separatorView.snp.makeConstraints { make in
+            make.height.equalTo(1)
+            make.left.right.equalToSuperview().inset(15)
+            make.top.equalTo(spentLabel!.snp.bottom).inset(-15)
+        }
+        
+        
+        categoryCollection = {
+            let layout = UICollectionViewFlowLayout()
+            let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
+            layout.scrollDirection = .horizontal
+            collection.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "cat")
+            collection.showsHorizontalScrollIndicator = false
+            collection.backgroundColor = .clear
+            collection.delegate = self
+            collection.isUserInteractionEnabled = true
+            layout.minimumLineSpacing = 15
+            collection.dataSource = self
+            return collection
+        }()
+        view.addSubview(categoryCollection!)
+        categoryCollection?.snp.makeConstraints({ make in
+            make.left.right.equalToSuperview().inset(15)
+            make.height.equalTo(69)
+            make.top.equalTo(separatorView.snp.bottom).inset(-15)
+        })
+        
+        let historyLabel = UILabel()
+        historyLabel.text = "History"
+        historyLabel.textColor = .black
+        historyLabel.font = .systemFont(ofSize: 28, weight: .semibold)
+        view.addSubview(historyLabel)
+        historyLabel.snp.makeConstraints { make in
+            make.left.equalToSuperview().inset(15)
+            make.top.equalTo(categoryCollection!.snp.bottom).inset(-15)
+        }
+        
+        noHistoryView = {
+            let view = UIView()
+            view.backgroundColor = .white
+            view.layer.cornerRadius = 16
+            view.layer.shadowColor = UIColor.black.cgColor
+            view.layer.shadowOpacity = 0.25
+            view.layer.shadowOffset = CGSize(width: 0, height: 2)
+            view.layer.shadowRadius = 4
+            view.layer.masksToBounds = false
+            view.alpha = 0
+            let label = UILabel()
+            label.text = "There are no records"
+            label.font = .systemFont(ofSize: 17, weight: .regular)
+            label.textColor = .black
+            view.addSubview(label)
+            label.snp.makeConstraints { make in
+                make.centerX.centerY.equalToSuperview()
+            }
+            
+            return view
+        }()
+        view.addSubview(noHistoryView!)
+        noHistoryView?.snp.makeConstraints({ make in
+            make.left.right.equalToSuperview().inset(15)
+            make.height.equalTo(86)
+            make.top.equalTo(historyLabel.snp.bottom).inset(-15)
+        })
+        
+        
+        
+        historyCollection = {
+            let layout = UICollectionViewFlowLayout()
+            let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
+            layout.scrollDirection = .vertical
+            collection.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "his")
+            collection.showsHorizontalScrollIndicator = false
+            collection.backgroundColor = .clear
+            collection.delegate = self
+            collection.isUserInteractionEnabled = true
+            layout.minimumLineSpacing = 15
+            collection.dataSource = self
+            return collection
+        }()
+        view.addSubview(historyCollection!)
+        historyCollection?.snp.makeConstraints({ make in
+            make.left.right.equalToSuperview().inset(15)
+            make.bottom.equalToSuperview()
+            make.top.equalTo(historyLabel.snp.bottom).inset(-15)
+        })
+        
+        let addHistoryButton: UIButton = {
+            let button = UIButton(type: .system)
+            button.setImage(.blackPlus.resize(targetSize: CGSize(width: 18, height: 18)), for: .normal)
+            button.tintColor = .black
+            return button
+        }()
+        view.addSubview(addHistoryButton)
+        addHistoryButton.snp.makeConstraints { make in
+            make.height.width.equalTo(24)
+            make.right.equalToSuperview().inset(15)
+            make.centerY.equalTo(historyLabel)
+        }
+        
+        
+        newHistoryView = {
+            let view = UIView()
+            view.backgroundColor = .white
+            view.layer.cornerRadius = 16
+            view.layer.shadowColor = UIColor.black.cgColor
+            view.layer.shadowOpacity = 0.25
+            view.layer.shadowOffset = CGSize(width: 0, height: 2)
+            view.layer.shadowRadius = 4
+            view.layer.masksToBounds = false
+            
+            let label = UILabel()
+            label.text = "Record"
+            label.font = .systemFont(ofSize: 22, weight: .semibold)
+            view.addSubview(label)
+            label.snp.makeConstraints { make in
+                make.centerX.equalToSuperview()
+                make.top.equalToSuperview().inset(30)
+            }
+            
+            nameHistoryTextField = {
+                let textField = UITextField()
+                textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
+                textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: 10))
+                textField.leftViewMode = .always
+                textField.rightViewMode = .always
+                textField.borderStyle = .none
+                textField.placeholder = "Name"
+                textField.layer.borderWidth = 1
+                textField.keyboardType = .decimalPad
+                textField.layer.borderColor = UIColor(red: 148/255, green: 98/255, blue: 255/255, alpha: 1).cgColor
+                textField.layer.cornerRadius = 16
+                return textField
+            }()
+            view.addSubview(nameHistoryTextField!)
+            nameHistoryTextField?.snp.makeConstraints({ make in
+                make.left.right.equalToSuperview().inset(20)
+                make.height.equalTo(54)
+                make.top.equalTo(label.snp.bottom).inset(-30)
+            })
+            
+            let stackViewTop = UIStackView()
+            stackViewTop.axis = .horizontal
+            stackViewTop.distribution = .fillEqually
+            view.addSubview(stackViewTop)
+            stackViewTop.snp.makeConstraints { make in
+                make.left.right.equalToSuperview().inset(20)
+                make.top.equalTo(nameHistoryTextField!.snp.bottom).inset(-10)
+                make.height.equalTo(69)
+            }
+            
+            let house = createViews(buttonmage: UIImage.onebut, text: "Housing", tag: 0)
+            let food = createViews(buttonmage: UIImage.twobut, text: "Food", tag: 1)
+            let clothes = createViews(buttonmage: UIImage.threebut, text: "Clothes", tag: 2)
+            let medicine = createViews(buttonmage: UIImage.fourbut, text: "Medicine", tag: 3)
+            stackViewTop.addArrangedSubview(house)
+            stackViewTop.addArrangedSubview(food)
+            stackViewTop.addArrangedSubview(clothes)
+            stackViewTop.addArrangedSubview(medicine)
+            
+            
+            
+            return view
+        }()
+        view.addSubview(newHistoryView!)
+        newHistoryView?.snp.makeConstraints({ make in
+            make.height.equalTo(492)
+            make.left.right.equalToSuperview().inset(30)
+            make.centerX.equalToSuperview()
+            make.centerY.equalToSuperview().offset(-50)
+        })
+        
+        
         view.addSubview(editBalanceView!)
         editBalanceView?.snp.makeConstraints({ make in
             make.height.equalTo(264)
@@ -269,14 +513,73 @@ class BalanceViewController: UIViewController {
             make.centerY.equalToSuperview().offset(-50)
         })
         
-        let gestureHideKey = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        view.addGestureRecognizer(gestureHideKey)
+        
+        
+        checkHistory()
+    }
+    
+    func createViews(buttonmage: UIImage, text: String, tag: Int) -> UIView {
+        let view = UIView()
+        let button = UIButton(type: .system)
+
+        button.setImage(buttonmage.resize(targetSize: CGSize(width: 20, height: 20)), for: .normal)
+        button.backgroundColor = UIColor(red: 220/255, green: 199/255, blue: 253/255, alpha: 1)
+        button.addTarget(self, action: #selector(butTapped(sender:)), for: .touchUpInside)
+        button.layer.cornerRadius = 12
+        button.tintColor = .white
+        button.tag = tag
         
         
         
+        view.addSubview(button)
+        button.snp.makeConstraints { make in
+            make.height.width.equalTo(48)
+            make.top.equalToSuperview()
+            make.centerX.equalToSuperview()
+        }
+        butArrow.append(button)
+        
+        let label = UILabel()
+        label.text = text
+        label.textColor = .black
+        label.font = .systemFont(ofSize: 11, weight: .regular)
+        view.addSubview(label)
+        label.snp.makeConstraints { make in
+            make.top.equalTo(button.snp.bottom).inset(-3)
+            make.centerX.equalToSuperview()
+        }
+        return view
     }
     
     
+    func checkHistory() {
+        if historyArr.count != 0 {
+            noHistoryView?.alpha = 0
+            historyCollection?.alpha = 1
+        } else {
+            noHistoryView?.alpha = 1
+            historyCollection?.alpha = 0
+        }
+    }
+    
+    @objc func butTapped(sender: UIButton) {
+        
+        
+        
+        for i in butArrow {
+            if i.backgroundColor == UIColor(red: 148/255, green: 98/255, blue: 255/255, alpha: 1) {
+                i.backgroundColor = UIColor(red: 220/255, green: 199/255, blue: 253/255, alpha: 1)
+            }
+        }
+        
+        sender.backgroundColor = UIColor(red: 148/255, green: 98/255, blue: 255/255, alpha: 1)
+        
+        butArrow[sender.tag] = sender
+        selectedCategoryCreate = sender.tag
+        print(catArr[sender.tag].1)
+        // длделать второй стак вью и создание
+        
+    }
     
     @objc func saveBalance() {
         let textInput = editBalanceTextField?.text?.replacingOccurrences(of: ",", with: ".") ?? "0.0"
@@ -331,6 +634,23 @@ class BalanceViewController: UIViewController {
         vc.index = selectedValueArr
         self.navigationController?.pushViewController(vc, animated: true)
     }
+    
+    
+    func applyTintColor(to image: UIImage, with color: UIColor) -> UIImage? {
+        guard let ciImage = CIImage(image: image) else { return nil }
+        let filter = CIFilter(name: "CIColorMonochrome")
+        filter?.setValue(ciImage, forKey: kCIInputImageKey)
+        filter?.setValue(CIColor(color: color), forKey: kCIInputColorKey)
+        filter?.setValue(1.0, forKey: kCIInputIntensityKey)
+
+        let context = CIContext(options: nil)
+        if let output = filter?.outputImage,
+           let cgImage = context.createCGImage(output, from: output.extent) {
+            return UIImage(cgImage: cgImage)
+        }
+
+        return nil
+    }
 
 }
 
@@ -362,4 +682,76 @@ extension BalanceViewController: UITextFieldDelegate {
         checkSaveEditBalance()
         return true
     }
+}
+
+
+extension BalanceViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView == categoryCollection {
+            return catArr.count
+        } else {
+            return historyArr.count
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == categoryCollection {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cat", for: indexPath)
+            cell.subviews.forEach { $0.removeFromSuperview() }
+            cell.backgroundColor = .clear
+            
+            let imageView = UIImageView(image: catArr[indexPath.row].0)
+            imageView.clipsToBounds = true
+            imageView.contentMode = .scaleAspectFit
+            cell.addSubview(imageView)
+            imageView.snp.makeConstraints { make in
+                make.height.width.equalTo(48)
+                make.top.centerX.equalToSuperview()
+            }
+            
+            if selectedCategor == indexPath.row {
+                let originalImage = imageView.image
+                if let tintedImage = applyTintColor(to: originalImage!, with: UIColor(red: 148/255, green: 98/255, blue: 255/255, alpha: 1)) {
+                    imageView.image = tintedImage
+                }
+            }
+
+            
+            let label = UILabel()
+            label.font = .systemFont(ofSize: 11, weight: .regular)
+            label.textColor = .black
+            label.text = catArr[indexPath.row].1
+            cell.addSubview(label)
+            label.snp.makeConstraints { make in
+                make.bottom.equalToSuperview()
+                make.centerX.equalToSuperview()
+            }
+            
+            return cell
+        } else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "his", for: indexPath)
+            cell.subviews.forEach { $0.removeFromSuperview() }
+            cell.backgroundColor = .red
+            
+            return cell
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        if collectionView == categoryCollection {
+            return CGSize(width: 48, height: 69)
+        } else {
+            return CGSize(width: collectionView.bounds.width, height: 72)
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == categoryCollection {
+            selectedCategor = indexPath.row
+            collectionView.reloadData()
+            //print(catArr[selectedCategor ?? 0].1)
+        }
+    }
+    
+    
 }
