@@ -11,6 +11,7 @@ class TabBarViewController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        UserDefaults.standard.setValue(true, forKey: "tab")
         settings()
     }
     
@@ -33,13 +34,23 @@ class TabBarViewController: UITabBarController {
         let balanceTabItem = UITabBarItem(title: "", image: .tab1.resize(targetSize: CGSize(width: 24, height: 24)), tag: 0)
         tabOneVC.tabBarItem = balanceTabItem
         
+        //tab2
+        let tabTwoVC = CalcViewController()
+        let calcTabItem = UITabBarItem(title: "", image: .tab2.resize(targetSize: CGSize(width: 24, height: 24)), tag: 0)
+        tabTwoVC.tabBarItem = calcTabItem
+        
+        let tabThreeVC = SettingsViewController()
+        let setTabItem = UITabBarItem(title: "", image: .tab3.resize(targetSize: CGSize(width: 24, height: 24)), tag: 0)
+        tabThreeVC.tabBarItem = setTabItem
         
         
-        tabBar.unselectedItemTintColor = UIColor(red: 237/255, green: 225/255, blue: 255/255, alpha: 1)
+        
+        
+        tabBar.unselectedItemTintColor = UIColor(red: 220/255, green: 199/255, blue: 253/255, alpha: 1)
         tabBar.tintColor = UIColor(red: 148/255, green: 98/255, blue: 255/255, alpha: 1)
         
         
-        viewControllers = [tabOneVC]
+        viewControllers = [tabOneVC, tabTwoVC, tabThreeVC]
     }
 
 }

@@ -18,6 +18,8 @@
 		15BD696B2C501699003129C7 /* TabBarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BD696A2C501699003129C7 /* TabBarViewController.swift */; };
 		15BD696E2C501774003129C7 /* BalanceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BD696D2C501774003129C7 /* BalanceViewController.swift */; };
 		15BD69702C524C79003129C7 /* ValuteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BD696F2C524C79003129C7 /* ValuteViewController.swift */; };
+		15BD69732C563448003129C7 /* CalcViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BD69722C563448003129C7 /* CalcViewController.swift */; };
+		15BD69762C578CFA003129C7 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BD69752C578CFA003129C7 /* SettingsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +35,8 @@
 		15BD696A2C501699003129C7 /* TabBarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarViewController.swift; sourceTree = "<group>"; };
 		15BD696D2C501774003129C7 /* BalanceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BalanceViewController.swift; sourceTree = "<group>"; };
 		15BD696F2C524C79003129C7 /* ValuteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValuteViewController.swift; sourceTree = "<group>"; };
+		15BD69722C563448003129C7 /* CalcViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcViewController.swift; sourceTree = "<group>"; };
+		15BD69752C578CFA003129C7 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +71,8 @@
 		15BD69472C4FE90D003129C7 /* Altair Beakon */ = {
 			isa = PBXGroup;
 			children = (
+				15BD69742C578CEB003129C7 /* Settings */,
+				15BD69712C563438003129C7 /* Calc */,
 				15BD696C2C50175B003129C7 /* Balance */,
 				15BD69692C501685003129C7 /* TabBar */,
 				15BD69662C500B3E003129C7 /* OnbUser */,
@@ -127,6 +133,22 @@
 				15BD696F2C524C79003129C7 /* ValuteViewController.swift */,
 			);
 			path = Balance;
+			sourceTree = "<group>";
+		};
+		15BD69712C563438003129C7 /* Calc */ = {
+			isa = PBXGroup;
+			children = (
+				15BD69722C563448003129C7 /* CalcViewController.swift */,
+			);
+			path = Calc;
+			sourceTree = "<group>";
+		};
+		15BD69742C578CEB003129C7 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				15BD69752C578CFA003129C7 /* SettingsViewController.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,8 +233,10 @@
 				15BD69652C4FFB0F003129C7 /* LoadViewController.swift in Sources */,
 				15BD69492C4FE90D003129C7 /* AppDelegate.swift in Sources */,
 				15BD696E2C501774003129C7 /* BalanceViewController.swift in Sources */,
+				15BD69732C563448003129C7 /* CalcViewController.swift in Sources */,
 				15BD696B2C501699003129C7 /* TabBarViewController.swift in Sources */,
 				15BD694B2C4FE90D003129C7 /* SceneDelegate.swift in Sources */,
+				15BD69762C578CFA003129C7 /* SettingsViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
